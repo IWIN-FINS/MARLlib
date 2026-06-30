@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from ray.rllib.utils.torch_ops import FLOAT_MIN
+from ray.rllib.utils.torch_utils import FLOAT_MIN
 from functools import reduce
 import copy
 from ray.rllib.models.torch.torch_modelv2 import TorchModelV2

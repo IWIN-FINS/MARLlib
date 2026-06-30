@@ -22,7 +22,7 @@
 
 from ray.rllib.utils.framework import try_import_torch
 from ray.rllib.policy.sample_batch import SampleBatch
-from ray.rllib.utils.torch_ops import sequence_mask
+from ray.rllib.utils.torch_utils import sequence_mask
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 from marllib.marl.algos.utils.setup_utils import get_device
 from marllib.marl.algos.utils.manipulate_tensor import flat_grad, flat_params, flat_hessian

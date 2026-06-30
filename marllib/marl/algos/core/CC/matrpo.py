@@ -33,7 +33,7 @@ from ray.rllib.models.torch.torch_action_dist import TorchDistributionWrapper
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.utils.typing import TensorType
 from ray.rllib.evaluation.postprocessing import Postprocessing
-from ray.rllib.utils.torch_ops import explained_variance, sequence_mask
+from ray.rllib.utils.torch_utils import explained_variance, sequence_mask
 from marllib.marl.algos.core import setup_torch_mixins
 
 torch, nn = try_import_torch()

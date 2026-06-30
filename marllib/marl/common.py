@@ -22,7 +22,7 @@
 
 import yaml
 import os
-import collections
+import collections.abc
 from typing import Dict
 
 algo_type_dict = {
@@ -67,7 +67,7 @@ def recursive_dict_update(target_dict: Dict, new_dict: Dict) -> Dict:
         Dict: updated dict
     """
     for k, v in new_dict.items():
-        if isinstance(v, collections.Mapping):
+        if isinstance(v, collections.abc.Mapping):
             target_dict[k] = recursive_dict_update(target_dict.get(k, {}), v)
         else:
             target_dict[k] = v

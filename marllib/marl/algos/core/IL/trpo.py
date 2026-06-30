@@ -31,7 +31,7 @@ from typing import List, Type, Union
 from ray.rllib.models.torch.torch_action_dist import TorchDistributionWrapper
 from ray.rllib.policy.policy import Policy
 from ray.rllib.models.modelv2 import ModelV2
-from ray.rllib.utils.torch_ops import explained_variance, sequence_mask
+from ray.rllib.utils.torch_utils import explained_variance, sequence_mask
 from ray.rllib.evaluation.postprocessing import Postprocessing
 from ray.rllib.policy.sample_batch import SampleBatch
 from ray.rllib.utils.framework import try_import_tf, try_import_torch

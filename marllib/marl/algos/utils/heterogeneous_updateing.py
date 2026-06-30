@@ -23,7 +23,7 @@
 from ray.rllib.utils.framework import try_import_torch
 import random
 from ray.rllib.policy.sample_batch import SampleBatch
-from ray.rllib.utils.torch_ops import sequence_mask
+from ray.rllib.utils.torch_utils import sequence_mask
 import re
 from marllib.marl.algos.utils.centralized_critic_hetero import get_global_name, global_state_name
 

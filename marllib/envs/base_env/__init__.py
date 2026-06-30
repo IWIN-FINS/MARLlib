@@ -161,3 +161,10 @@ try:
     ENV_REGISTRY["sisl"] = RLlibSISL
 except Exception as e:
     ENV_REGISTRY["sisl"] = str(e)
+
+try:
+    from marllib.envs.base_env.unity_3chase1 import RLlibUnity3Chase1
+
+    ENV_REGISTRY["unity_3chase1"] = RLlibUnity3Chase1
+except Exception as e:
+    ENV_REGISTRY["unity_3chase1"] = str(e)

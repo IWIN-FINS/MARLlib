@@ -114,47 +114,36 @@ Here we provide a table for the comparison of MARLlib and existing work.
 
 ### Step-by-step  (recommended)
 
-- install dependencies
-- install environments
-- install patches
-
-#### 1. install dependencies (basic)
-
-First, install MARLlib dependencies to guarantee basic usage.
-following [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html), finally install patches for RLlib.
+MARLlib is now managed by `uv` and targets Python 3.12 with modern Ray/RLlib.
+Do not install the legacy `requirements.txt` directly.
 
 ```bash
-$ conda create -n marllib python=3.8 # or 3.9
-$ conda activate marllib
-$ git clone https://github.com/Replicable-MARL/MARLlib.git && cd MARLlib
-$ pip install -r requirements.txt
+$ uv sync --extra dev
+$ uv run python -c "import ray, torch; from marllib import marl; print(ray.__version__, torch.__version__)"
 ```
 
-#### 2. install environments (optional)
+The default dependency set uses:
 
-Please follow [this guide](https://marllib.readthedocs.io/en/latest/handbook/env.html).
+- `ray[rllib,tune]>=2.54.0`
+- `torch==2.9.0`
+- `pettingzoo==1.25.0`
+- `mlagents==1.1.0`
 
-> __Note__:
-> We recommend the gym version around 0.20.0.
-```bash
-pip install "gym==0.20.0"
-```
+The old `marllib/patch/add_patch.py` flow was for Ray 1.8 and is no longer part
+of the installation process.
 
-#### 3. install patches (basic)
+#### Unity 3Chase1 smoke training
 
-Fix bugs of RLlib using patches by running the following command:
-
-```bash
-$ cd /Path/To/MARLlib/marllib/patch
-$ python add_patch.py -y
-```
-
-### PyPI
+The included Unity build is registered as `unity_3chase1`. On headless Linux,
+run it through Xvfb:
 
 ```bash
-$ pip install --upgrade pip
-$ pip install marllib
+$ xvfb-run --auto-servernum --server-args='-screen 0 1280x1024x24' \
+    uv run python examples/train_unity_3chase1_mappo.py
 ```
+
+If a Unity worker port is still in use, the wrapper retries ports starting from
+`env_base_port`.
 
 ### Docker-based usage
 
@@ -421,5 +410,4 @@ Works that are based on or closely collaborate with MARLlib <[link](https://gith
       year={2023},
 }
 ```
-
 

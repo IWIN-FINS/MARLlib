@@ -1,0 +1,16 @@
+env: unity_3chase1
+
+env_args:
+  map_name: "3Chase1"
+  unity_env_binary_path: "artifacts/unity_builds/3Chase1/RLChase_FishEscapeHybrid_NewNet.x86_64"
+  env_base_port: 5005
+  max_port_retries: 16
+  worker_id: 0
+  no_graphics: False
+  time_scale: 10.0
+  episode_limit: 900
+
+mask_flag: False
+global_state_flag: False
+opp_action_in_cc: False
+agent_level_batch_update: False

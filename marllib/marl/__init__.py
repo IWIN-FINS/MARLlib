@@ -23,6 +23,7 @@
 from marllib.marl.common import dict_update, get_model_config, check_algo_type, \
     recursive_dict_update
 from marllib.marl.algos import run_il, run_vd, run_cc
+from marllib.marl.algos.modern import run_modern_algorithm
 from marllib.marl.algos.scripts import POlICY_REGISTRY
 from marllib.envs.base_env import ENV_REGISTRY
 from marllib.envs.global_reward_env import COOP_ENV_REGISTRY
@@ -307,15 +308,7 @@ class _Algo:
         self.config_dict = recursive_dict_update(self.config_dict, running_params)
 
         self.config_dict['algorithm'] = self.name
-
-        if self.algo_type == "IL":
-            return run_il(self.config_dict, env_instance, model_class, stop=stop)
-        elif self.algo_type == "VD":
-            return run_vd(self.config_dict, env_instance, model_class, stop=stop)
-        elif self.algo_type == "CC":
-            return run_cc(self.config_dict, env_instance, model_class, stop=stop)
-        else:
-            raise ValueError("not supported type {}".format(self.algo_type))
+        return run_modern_algorithm(self.config_dict, env_instance, model_class, stop=stop)
 
     def render(self, env: Tuple[MultiAgentEnv, Dict], model: Tuple[Any, Dict], stop: Dict = None,
                **running_params) -> None:

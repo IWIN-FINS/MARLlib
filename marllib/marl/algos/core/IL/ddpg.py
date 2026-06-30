@@ -33,7 +33,7 @@ from ray.rllib.models.tf.tf_action_dist import Deterministic
 from ray.rllib.policy.policy import Policy
 from ray.rllib.models import MODEL_DEFAULTS
 from ray.rllib.utils.spaces.simplex import Simplex
-from ray.rllib.utils.torch_ops import huber_loss, l2_loss, sequence_mask
+from ray.rllib.utils.torch_utils import huber_loss, l2_loss, sequence_mask
 from ray.rllib.utils.typing import TrainerConfigDict, ModelInputDict
 from ray.rllib.models.modelv2 import ModelV2
 from ray.rllib.agents.ddpg.ddpg_torch_model import DDPGTorchModel
