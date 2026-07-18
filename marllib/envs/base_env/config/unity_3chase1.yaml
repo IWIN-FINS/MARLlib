@@ -9,6 +9,9 @@ env_args:
   no_graphics: False
   time_scale: 10.0
   episode_limit: 900
+  herder_action_source: "python_policy"
+  netter_action_source: "python_policy"
+  prey_action_source: "wrapper_escape"
 
 mask_flag: False
 global_state_flag: False

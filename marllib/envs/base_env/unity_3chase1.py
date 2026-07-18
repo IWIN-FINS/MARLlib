@@ -1,4 +1,5 @@
 from pathlib import Path
+from dataclasses import dataclass
 from typing import Any, Dict
 
 import numpy as np
@@ -10,7 +11,19 @@ def _resolve_binary_path(path: str) -> Path:
     raw = Path(path).expanduser()
     if raw.is_absolute():
         return raw.resolve()
-    return (Path.cwd() / raw).resolve()
+
+    cwd_candidate = (Path.cwd() / raw).resolve()
+    if cwd_candidate.exists():
+        return cwd_candidate
+
+    current = Path.cwd().resolve()
+    for candidate in (current, *current.parents):
+        if (candidate / "configs").exists() and (candidate / "python" / "finssim_core").exists():
+            workspace_candidate = (candidate / raw).resolve()
+            if workspace_candidate.exists():
+                return workspace_candidate
+
+    return cwd_candidate
 
 
 def _validate_binary_path(path: str) -> str:
@@ -64,6 +77,15 @@ class RLlibUnity3Chase1(MultiAgentEnv):
 
     ROLE_PREFIXES = ("Herder", "Netter", "Prey")
     LEARNING_PREFIXES = ("Herder", "Netter")
+    ACTION_SOURCE_PYTHON_POLICY = "python_policy"
+    ACTION_SOURCE_WRAPPER_ESCAPE = "wrapper_escape"
+    ACTION_SOURCE_UNITY_BASELINE = "unity_baseline"
+
+    @dataclass(frozen=True)
+    class ActionSourceConfig:
+        herder_action_source: str = "python_policy"
+        netter_action_source: str = "python_policy"
+        prey_action_source: str = "wrapper_escape"
 
     def __init__(self, env_config: Dict[str, Any]):
         from mlagents_envs.environment import UnityEnvironment
@@ -81,6 +103,12 @@ class RLlibUnity3Chase1(MultiAgentEnv):
         self.worker_id = int(cfg.get("worker_id", 0))
         self.base_port = int(cfg.get("env_base_port", 5005))
         self._step_count = 0
+        self.action_source_config = self.ActionSourceConfig(
+            herder_action_source=str(cfg.get("herder_action_source", "python_policy")),
+            netter_action_source=str(cfg.get("netter_action_source", "python_policy")),
+            prey_action_source=str(cfg.get("prey_action_source", "wrapper_escape")),
+        )
+        self._validate_action_sources()
 
         channel = EngineConfigurationChannel()
         channel.set_configuration_parameters(time_scale=float(cfg.get("time_scale", 10.0)))
@@ -128,6 +156,27 @@ class RLlibUnity3Chase1(MultiAgentEnv):
         self.action_space = Box(low=-1.0, high=1.0, shape=(self._action_dim,), dtype=np.float32)
         self._last_raw_obs = None
 
+    def _validate_action_sources(self) -> None:
+        valid_sources = {
+            self.ACTION_SOURCE_PYTHON_POLICY,
+            self.ACTION_SOURCE_WRAPPER_ESCAPE,
+            self.ACTION_SOURCE_UNITY_BASELINE,
+        }
+        role_sources = {
+            "herder_action_source": self.action_source_config.herder_action_source,
+            "netter_action_source": self.action_source_config.netter_action_source,
+            "prey_action_source": self.action_source_config.prey_action_source,
+        }
+        for field_name, source in role_sources.items():
+            if source not in valid_sources:
+                raise ValueError(
+                    f"Invalid unity_3chase1 {field_name}={source!r}; "
+                    f"valid values are {sorted(valid_sources)}"
+                )
+        for field_name in ("herder_action_source", "netter_action_source"):
+            if role_sources[field_name] == self.ACTION_SOURCE_WRAPPER_ESCAPE:
+                raise ValueError(f"{field_name} cannot use wrapper_escape.")
+
     def _format_obs(self, obs_dict: Dict[str, Any]) -> Dict[str, Dict[str, np.ndarray]]:
         return {
             agent: {"obs": _flatten_obs(obs_dict[agent], self._obs_dim)}
@@ -144,7 +193,41 @@ class RLlibUnity3Chase1(MultiAgentEnv):
             flat = flat[:target_dim]
         return flat.astype(np.float32, copy=False)
 
+    def _prey_escape_action(self, agent: str) -> np.ndarray:
+        target_dim = self._action_dims.get(agent, self._action_dim)
+        fallback = np.random.uniform(-1.0, 1.0, target_dim).astype(np.float32)
+        if not self._last_raw_obs or agent not in self._last_raw_obs:
+            return fallback
+
+        try:
+            obs = _flatten_obs(self._last_raw_obs[agent])
+            my_pos = obs[:3]
+            min_dist = float("inf")
+            escape_dir = np.zeros(3, dtype=np.float32)
+            for idx in range(3):
+                offset = 6 + idx * 3
+                if obs.shape[0] <= offset + 3:
+                    continue
+                chaser_pos = obs[offset : offset + 3]
+                direction = my_pos - chaser_pos
+                dist = float(np.linalg.norm(direction))
+                if 0.1 < dist < min_dist:
+                    min_dist = dist
+                    escape_dir = direction / dist
+
+            if min_dist < float("inf"):
+                action = np.zeros(target_dim, dtype=np.float32)
+                action[: min(3, target_dim)] = escape_dir[: min(3, target_dim)]
+                return action
+        except (IndexError, TypeError, ValueError):
+            return fallback
+
+        return fallback
+
     def _prey_action(self, agent: str) -> np.ndarray:
+        source = self.action_source_config.prey_action_source
+        if source == self.ACTION_SOURCE_WRAPPER_ESCAPE:
+            return self._prey_escape_action(agent)
         return np.zeros(self._action_dims.get(agent, self._action_dim), dtype=np.float32)
 
     def reset(self, *, seed=None, options=None):
